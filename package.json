@@ -1,0 +1,11 @@
+{
+  "name": "caseminds",
+  "private": true,
+  "description": "Root package.json so Render installs Node alongside Python",
+  "scripts": {
+    "build:frontend": "cd frontend && npm ci && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
