@@ -11,6 +11,7 @@ Endpoints:
   GET  /api/v1/eval/latest     — latest eval run summary
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -20,13 +21,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from services.agents.logger import configure_logging, set_trace_id
-from services.agents.pipeline import run_pipeline
+from services.agents.pipeline import get_pipeline_meta, run_pipeline, run_pipeline_events
 from services.api.database import SessionLocal, get_db, init_db
 from services.api.models import Feedback, JudgmentCitation, QueryLog
 from services.api.schemas import (
@@ -100,9 +102,8 @@ app.add_middleware(
 
 
 @app.exception_handler(Exception)
-async def _global_exception_handler(request: Request, exc: Exception) -> StreamingResponse:
+async def _global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     import traceback
-    from fastapi.responses import JSONResponse
     logger.error(
         "unhandled exception on %s %s: %s\n%s",
         request.method, request.url.path, exc, traceback.format_exc(),
@@ -147,9 +148,20 @@ def _build_query_response(data: dict, trace_id: str, latency_ms: int, db: Sessio
             )
         )
 
+    status = final_state.get("status", "COMPLETE")
+    answer = final_state.get("draft_answer")
+    if not answer:
+        if status == "NO_RESULTS":
+            answer = (
+                "CaseMinds could not find relevant authority in its corpus for this query. "
+                "Try rephrasing, or search Indian Kanoon directly."
+            )
+        else:
+            answer = ""
+
     return QueryResponse(
-        status=final_state.get("status", "COMPLETE"),
-        answer=final_state.get("draft_answer", ""),
+        status=status,
+        answer=answer,
         citations=citations,
         overruled_warnings=overruled,
         confidence=final_state.get("confidence", 0.0),
@@ -249,32 +261,46 @@ async def query_stream_endpoint(
 
     async def event_generator() -> AsyncGenerator[str, None]:
         start_ms = time.time() * 1000
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[dict | None] = asyncio.Queue()
 
         def _sse(event: str, data: dict) -> str:
             return f"data: {json.dumps({'event': event, **data})}\n\n"
 
-        try:
-            # Emit start events for each agent
-            agents = ["QueryClassifier", "RetrievalAgent", "GraphTraversal", "VerificationAnswer"]
-            for ag in agents:
-                yield _sse("agent_start", {"agent": ag, "trace_id": trace_id})
+        def _produce_events() -> None:
+            try:
+                for ev in run_pipeline_events(body.query.strip()):
+                    loop.call_soon_threadsafe(queue.put_nowait, ev)
+            except Exception as exc:
+                loop.call_soon_threadsafe(
+                    queue.put_nowait,
+                    {"event": "error", "detail": str(exc), "trace_id": trace_id},
+                )
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, None)
 
-            # Run pipeline (blocking — wrap in thread pool in production)
-            import asyncio
-            loop = asyncio.get_event_loop()
-            final_state = await loop.run_in_executor(None, run_pipeline, body.query.strip())
+        producer = loop.run_in_executor(None, _produce_events)
+
+        try:
+            final_state: dict = {}
+
+            while True:
+                ev = await queue.get()
+                if ev is None:
+                    break
+
+                if ev.get("event") == "error":
+                    yield _sse("error", {k: v for k, v in ev.items() if k != "event"})
+                    return
+
+                if ev["event"] == "pipeline_done":
+                    final_state = ev["state"]
+                    continue
+
+                yield _sse(ev["event"], {k: v for k, v in ev.items() if k != "event"})
 
             latency_ms = int(time.time() * 1000 - start_ms)
 
-            # Emit per-agent trace events
-            for entry in final_state.get("trace", []):
-                yield _sse("agent_complete", {
-                    "agent": entry["agent"],
-                    "action": entry["action"],
-                    "detail": entry["detail"],
-                })
-
-            # Emit final answer
             response = _build_query_response(final_state, trace_id, latency_ms, db)
             _log_query(trace_id, body.query, final_state, latency_ms, db)
             yield _sse("answer", {"data": response.model_dump()})
@@ -282,6 +308,8 @@ async def query_stream_endpoint(
         except Exception as exc:
             logger.error("stream pipeline error: %s", exc, extra={"trace_id": trace_id})
             yield _sse("error", {"detail": str(exc), "trace_id": trace_id})
+        finally:
+            await producer
 
     return StreamingResponse(
         event_generator(),
@@ -416,3 +444,53 @@ def eval_latest() -> EvalLatestResponse:
         )
     data = json.loads(report_files[0].read_text())
     return EvalLatestResponse(**data)
+
+
+# ── GET /api/v1/pipeline/meta ─────────────────────────────────────────────────
+
+@app.get("/api/v1/pipeline/meta")
+def pipeline_meta() -> dict:
+    """Agent labels for UI. Step details are streamed live per query."""
+    return {"agents": get_pipeline_meta()}
+
+@app.get("/api/v1/admin/corpus-status")
+def corpus_status(db: Session = Depends(get_db)) -> dict:
+    """Corpus health + instructions for manual refresh (judgments are NOT auto-updated)."""
+    from services.api.models import Judgment
+
+    size = db.query(Judgment).count()
+    graph_stats = _graph_store.stats() if _graph_store else {"nodes": 0, "edges": 0}
+    return {
+        "corpus_size": size,
+        "graph_nodes": graph_stats["nodes"],
+        "graph_edges": graph_stats["edges"],
+        "ready": size >= 50,
+        "auto_updates": False,
+        "refresh_instructions": (
+            "Judgments are NOT added automatically. To expand the corpus, run locally: "
+            "python scripts/seed.py --fast --incremental && python scripts/seed_statutes.py, "
+            "then copy data/ to the Render disk, OR run the same commands in Render Shell."
+        ),
+    }
+
+
+# ── Serve React frontend (production) ─────────────────────────────────────────
+
+_frontend_dir = Path(settings.frontend_dist)
+if _frontend_dir.is_dir() and (_frontend_dir / "index.html").is_file():
+    _assets_dir = _frontend_dir / "assets"
+    if _assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="frontend-assets")
+
+    @app.get("/")
+    def serve_spa_root() -> FileResponse:
+        return FileResponse(_frontend_dir / "index.html")
+
+    @app.get("/{full_path:path}")
+    def serve_spa(full_path: str) -> FileResponse:
+        if full_path.startswith("api/") or full_path == "api":
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = _frontend_dir / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_frontend_dir / "index.html")

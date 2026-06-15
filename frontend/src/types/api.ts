@@ -45,8 +45,12 @@ export type AgentStepStatus = "pending" | "active" | "done";
 export interface AgentStep {
   id: AgentName;
   label: string;
-  description: string;
   status: AgentStepStatus;
+  /** Live detail from backend trace — NOT hardcoded */
+  detail?: string;
+  action?: string;
+  step?: number;
+  totalSteps?: number;
 }
 
 export interface StreamEvent {

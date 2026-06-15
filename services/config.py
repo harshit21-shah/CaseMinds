@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # ── LLM model names ───────────────────────────────────────────────────────
     groq_classifier_model: str = "llama-3.1-8b-instant"
     groq_answer_model: str = "llama-3.3-70b-versatile"
+    groq_answer_fallback_model: str = "llama-3.1-8b-instant"
     claude_fallback_model: str = "claude-haiku-4-5"
 
     # ── Embedding + reranking models ─────────────────────────────────────────
@@ -55,7 +56,12 @@ class Settings(BaseSettings):
     max_total_context_chunks: int = 10  # cap passed to answer agent
 
     # ── Verification ─────────────────────────────────────────────────────────
-    verification_threshold: float = 0.85   # min fraction of verified citations for COMPLETE
+    verification_threshold: float = 0.50   # fraction of [CITE:] tags verified in DB
+    verification_min_verified: int = 1       # COMPLETE if this many cites verify (even below threshold)
+
+    # ── Deployment ────────────────────────────────────────────────────────────
+    frontend_dist: str = "./frontend/dist"
+    seed_admin_secret: str = ""              # set to enable POST /api/v1/admin/seed-status
 
     # ── Citation extraction ───────────────────────────────────────────────────
     citation_llm_batch_size: int = 5       # paragraphs per Groq call
@@ -82,3 +88,14 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def has_valid_anthropic_key() -> bool:
+    """True only when a real Anthropic key is configured (not .env placeholder text)."""
+    key = settings.anthropic_api_key.strip()
+    if not key:
+        return False
+    lowered = key.lower()
+    if lowered.startswith("your_") or lowered in {"change_me", "changeme", "xxx"}:
+        return False
+    return key.startswith("sk-ant-")

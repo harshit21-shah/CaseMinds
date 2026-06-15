@@ -76,7 +76,12 @@ def run_verification_answer(state: PipelineState) -> PipelineState:
     confidence = verified_count / max(total_tags, 1)
 
     status: str
-    if confidence >= _settings.verification_threshold:
+    if verified_count == 0:
+        status = "LOW_CONFIDENCE"
+    elif confidence >= _settings.verification_threshold:
+        status = "COMPLETE"
+    elif verified_count >= _settings.verification_min_verified:
+        # At least one real citation verified — answer is usable even if LLM over-cited
         status = "COMPLETE"
     else:
         status = "LOW_CONFIDENCE"

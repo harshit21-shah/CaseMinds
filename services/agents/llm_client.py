@@ -17,7 +17,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 
-from services.config import settings
+from services.config import has_valid_anthropic_key, settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 GROQ_CLASSIFIER = settings.groq_classifier_model
 GROQ_ANSWER = settings.groq_answer_model
+GROQ_ANSWER_FALLBACK = settings.groq_answer_fallback_model
 CLAUDE_FALLBACK = settings.claude_fallback_model
 
 # ── Prompt loading ────────────────────────────────────────────────────────────
@@ -62,6 +63,20 @@ def _get_anthropic_client(temperature: float = 0.0) -> BaseChatModel:
 
 # ── Invoke with logging + fallback ────────────────────────────────────────────
 
+def _invoke_groq(
+    model: str,
+    messages: list[BaseMessage],
+    temperature: float,
+) -> tuple[str, dict[str, int | None]]:
+    client = _get_groq_client(model, temperature)
+    response = client.invoke(messages)
+    usage = {
+        "tokens_in": getattr(response.usage_metadata, "input_tokens", None),
+        "tokens_out": getattr(response.usage_metadata, "output_tokens", None),
+    }
+    return str(response.content), usage
+
+
 def invoke(
     *,
     prompt_name: str,
@@ -88,35 +103,46 @@ def invoke(
     start = time.perf_counter()
     usage: dict[str, Any] = {"model": model, "prompt_name": prompt_name}
 
+    groq_models = [model]
+    if model == GROQ_ANSWER and GROQ_ANSWER_FALLBACK not in groq_models:
+        groq_models.append(GROQ_ANSWER_FALLBACK)
+
+    last_groq_err: Exception | None = None
+    for groq_model in groq_models:
+        try:
+            text, groq_usage = _invoke_groq(groq_model, messages, temperature)
+            elapsed = (time.perf_counter() - start) * 1000
+            usage.update(
+                {
+                    "model": groq_model,
+                    "latency_ms": round(elapsed),
+                    "tokens_in": groq_usage["tokens_in"],
+                    "tokens_out": groq_usage["tokens_out"],
+                    "fallback_used": groq_model != model,
+                }
+            )
+            logger.info(
+                "llm_invoke model=%s prompt=%s latency_ms=%d fallback=%s",
+                groq_model,
+                prompt_name,
+                elapsed,
+                groq_model != model,
+            )
+            return text, usage
+        except Exception as groq_err:
+            last_groq_err = groq_err
+            logger.warning("Groq model %s failed (%s)", groq_model, groq_err)
+
+    assert last_groq_err is not None
+    logger.warning("All Groq models failed, trying Claude Haiku")
+
+    if not has_valid_anthropic_key():
+        raise RuntimeError(
+            f"Groq failed and no valid ANTHROPIC_API_KEY is configured. "
+            f"Set a real key or leave ANTHROPIC_API_KEY empty. Original error: {last_groq_err}"
+        ) from last_groq_err
+
     try:
-        client = _get_groq_client(model, temperature)
-        response = client.invoke(messages)
-        elapsed = (time.perf_counter() - start) * 1000
-
-        usage.update(
-            {
-                "latency_ms": round(elapsed),
-                "tokens_in": getattr(response.usage_metadata, "input_tokens", None),
-                "tokens_out": getattr(response.usage_metadata, "output_tokens", None),
-                "fallback_used": False,
-            }
-        )
-        logger.info(
-            "llm_invoke model=%s prompt=%s latency_ms=%d",
-            model,
-            prompt_name,
-            elapsed,
-        )
-        return str(response.content), usage
-
-    except Exception as groq_err:
-        logger.warning("Groq failed (%s), falling back to Claude Haiku", groq_err)
-
-        if not settings.anthropic_api_key:
-            raise RuntimeError(
-                f"Groq failed and no ANTHROPIC_API_KEY set. Original error: {groq_err}"
-            ) from groq_err
-
         client_fb = _get_anthropic_client(temperature)
         response_fb = client_fb.invoke(messages)
         elapsed = (time.perf_counter() - start) * 1000
@@ -137,6 +163,10 @@ def invoke(
             elapsed,
         )
         return str(response_fb.content), usage
+    except Exception as anthropic_err:
+        raise RuntimeError(
+            f"Groq and Anthropic both failed. Groq: {last_groq_err}. Anthropic: {anthropic_err}"
+        ) from anthropic_err
 
 
 def invoke_structured(
@@ -172,8 +202,11 @@ def invoke_structured(
     except Exception as groq_err:
         logger.warning("Groq structured output failed (%s), falling back", groq_err)
 
-        if not settings.anthropic_api_key:
-            raise RuntimeError(str(groq_err)) from groq_err
+        if not has_valid_anthropic_key():
+            raise RuntimeError(
+                f"Groq failed and no valid ANTHROPIC_API_KEY is configured. "
+                f"Original error: {groq_err}"
+            ) from groq_err
 
         client_fb = _get_anthropic_client(temperature).with_structured_output(schema)
         result_fb = client_fb.invoke(messages)

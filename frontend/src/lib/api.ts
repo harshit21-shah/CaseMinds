@@ -8,6 +8,12 @@ export async function fetchHealth(): Promise<HealthResponse> {
   return res.json();
 }
 
+export async function fetchPipelineMeta(): Promise<{ agents: { id: string; label: string; node: string }[] }> {
+  const res = await fetch(`${API_BASE}/pipeline/meta`);
+  if (!res.ok) throw new Error(`Pipeline meta failed: ${res.status}`);
+  return res.json();
+}
+
 export async function submitFeedback(
   traceId: string,
   rating: "HELPFUL" | "NOT_HELPFUL" | "PARTIALLY_HELPFUL",
