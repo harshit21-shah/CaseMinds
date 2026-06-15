@@ -1,0 +1,142 @@
+[
+  {
+    "id": "RET_001",
+    "query": "Does Section 138 NI Act apply to post-dated cheques?",
+    "statute_refs": ["Section 138 NI Act"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_002",
+    "query": "What is the limitation period for filing a cheque bounce complaint?",
+    "statute_refs": ["Section 138 NI Act"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_003",
+    "query": "Can a company be prosecuted under Section 138 NI Act?",
+    "statute_refs": ["Section 138 NI Act"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_004",
+    "query": "Elements required to prove murder under Section 302 IPC",
+    "statute_refs": ["Section 302 IPC"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_005",
+    "query": "What constitutes cheating under Section 420 IPC?",
+    "statute_refs": ["Section 420 IPC"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_006",
+    "query": "Grounds for granting temporary injunction under Order 39 CPC",
+    "statute_refs": ["Order 39 CPC"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_007",
+    "query": "Balance of convenience test for interim injunction",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_008",
+    "query": "Is anticipatory bail available for Section 302 IPC accused?",
+    "statute_refs": ["Section 302 IPC"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_009",
+    "query": "What is the standard of proof beyond reasonable doubt in criminal cases?",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_010",
+    "query": "Divorce on grounds of cruelty under Hindu Marriage Act",
+    "statute_refs": ["Section 13 Hindu Marriage Act"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_011",
+    "query": "Specific performance of contract — when courts exercise discretion",
+    "statute_refs": ["Section 10 Specific Relief Act"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_012",
+    "query": "Presumption under Section 139 NI Act in cheque dishonour cases",
+    "statute_refs": ["Section 139 NI Act"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_013",
+    "query": "Can accused rebut presumption under Section 139 NI Act?",
+    "statute_refs": ["Section 139 NI Act"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_014",
+    "query": "Mens rea requirement for conviction under IPC",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_015",
+    "query": "Order 7 Rule 11 CPC rejection of plaint",
+    "statute_refs": ["Order 7 Rule 11 CPC"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_016",
+    "query": "What is legally enforceable debt under Section 138 NI Act?",
+    "statute_refs": ["Section 138 NI Act"],
+    "strategy": "BM25_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_017",
+    "query": "Last seen theory in murder cases circumstantial evidence",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_018",
+    "query": "Territorial jurisdiction of courts in cheque bounce cases",
+    "statute_refs": ["Section 138 NI Act"],
+    "strategy": "HYBRID_EQUAL",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_019",
+    "query": "Principles of natural justice in administrative proceedings",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  },
+  {
+    "id": "RET_020",
+    "query": "When can a court award exemplary damages?",
+    "statute_refs": [],
+    "strategy": "DENSE_FIRST",
+    "relevant_doc_ids": []
+  }
+]

@@ -1,0 +1,249 @@
+[
+  {
+    "id": "NI_001",
+    "query": "Does Section 138 NI Act apply to post-dated cheques?",
+    "expected_citations": [],
+    "expected_answer_contains": ["post-dated", "Section 138", "legally enforceable"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "NI_002",
+    "query": "What is the limitation period for filing a complaint under Section 138 NI Act?",
+    "expected_citations": [],
+    "expected_answer_contains": ["30 days", "Section 138", "limitation"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "NI_003",
+    "query": "Can a company be prosecuted under Section 138 NI Act?",
+    "expected_citations": [],
+    "expected_answer_contains": ["company", "Section 141", "vicarious liability"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "NI_004",
+    "query": "What is the presumption under Section 139 NI Act and how can it be rebutted?",
+    "expected_citations": [],
+    "expected_answer_contains": ["Section 139", "presumption", "legally enforceable debt"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "NI_005",
+    "query": "What constitutes a legally enforceable debt under Section 138 NI Act?",
+    "expected_citations": [],
+    "expected_answer_contains": ["legally enforceable", "debt", "liability"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "NI_006",
+    "query": "Territorial jurisdiction for cheque bounce complaint — where can it be filed?",
+    "expected_citations": [],
+    "expected_answer_contains": ["jurisdiction", "complaint", "bank"],
+    "should_not_cite": [],
+    "category": "NI_ACT"
+  },
+  {
+    "id": "IPC_001",
+    "query": "What are the essential ingredients to prove murder under Section 302 IPC?",
+    "expected_citations": [],
+    "expected_answer_contains": ["Section 302", "intention", "death"],
+    "should_not_cite": [],
+    "category": "IPC"
+  },
+  {
+    "id": "IPC_002",
+    "query": "Difference between culpable homicide and murder under IPC",
+    "expected_citations": [],
+    "expected_answer_contains": ["Section 299", "Section 300", "culpable homicide"],
+    "should_not_cite": [],
+    "category": "IPC"
+  },
+  {
+    "id": "IPC_003",
+    "query": "Elements of cheating under Section 420 IPC",
+    "expected_citations": [],
+    "expected_answer_contains": ["Section 420", "deception", "dishonest"],
+    "should_not_cite": [],
+    "category": "IPC"
+  },
+  {
+    "id": "IPC_004",
+    "query": "When does abetment under IPC attach criminal liability?",
+    "expected_citations": [],
+    "expected_answer_contains": ["abetment", "instigation", "Section 107"],
+    "should_not_cite": [],
+    "category": "IPC"
+  },
+  {
+    "id": "IPC_005",
+    "query": "Last seen theory in circumstantial evidence cases under IPC",
+    "expected_citations": [],
+    "expected_answer_contains": ["circumstantial evidence", "last seen", "chain"],
+    "should_not_cite": [],
+    "category": "IPC"
+  },
+  {
+    "id": "CPC_001",
+    "query": "What are the three conditions for granting temporary injunction under Order 39 CPC?",
+    "expected_citations": [],
+    "expected_answer_contains": ["prima facie", "balance of convenience", "irreparable"],
+    "should_not_cite": [],
+    "category": "CPC"
+  },
+  {
+    "id": "CPC_002",
+    "query": "When can a plaint be rejected under Order 7 Rule 11 CPC?",
+    "expected_citations": [],
+    "expected_answer_contains": ["Order 7 Rule 11", "plaint", "cause of action"],
+    "should_not_cite": [],
+    "category": "CPC"
+  },
+  {
+    "id": "CPC_003",
+    "query": "Res judicata — what is the principle and its conditions under CPC?",
+    "expected_citations": [],
+    "expected_answer_contains": ["res judicata", "Section 11", "same matter"],
+    "should_not_cite": [],
+    "category": "CPC"
+  },
+  {
+    "id": "SRA_001",
+    "query": "When will a court grant specific performance of a contract under Specific Relief Act?",
+    "expected_citations": [],
+    "expected_answer_contains": ["specific performance", "discretion", "Section 10"],
+    "should_not_cite": [],
+    "category": "SRA"
+  },
+  {
+    "id": "SRA_002",
+    "query": "Can specific performance be refused even if contract is valid?",
+    "expected_citations": [],
+    "expected_answer_contains": ["discretion", "specific performance", "hardship"],
+    "should_not_cite": [],
+    "category": "SRA"
+  },
+  {
+    "id": "HMA_001",
+    "query": "Cruelty as a ground for divorce under the Hindu Marriage Act",
+    "expected_citations": [],
+    "expected_answer_contains": ["Section 13", "cruelty", "mental"],
+    "should_not_cite": [],
+    "category": "HMA"
+  },
+  {
+    "id": "HMA_002",
+    "query": "What constitutes irretrievable breakdown of marriage in Indian law?",
+    "expected_citations": [],
+    "expected_answer_contains": ["divorce", "marriage", "breakdown"],
+    "should_not_cite": [],
+    "category": "HMA"
+  },
+  {
+    "id": "GEN_001",
+    "query": "Principles of natural justice — audi alteram partem",
+    "expected_citations": [],
+    "expected_answer_contains": ["natural justice", "heard", "opportunity"],
+    "should_not_cite": [],
+    "category": "GENERAL"
+  },
+  {
+    "id": "GEN_002",
+    "query": "Standard of proof in criminal vs civil cases in India",
+    "expected_citations": [],
+    "expected_answer_contains": ["beyond reasonable doubt", "preponderance", "proof"],
+    "should_not_cite": [],
+    "category": "GENERAL"
+  },
+  {
+    "id": "GEN_003",
+    "query": "When can exemplary or punitive damages be awarded by Indian courts?",
+    "expected_citations": [],
+    "expected_answer_contains": ["exemplary", "damages", "punitive"],
+    "should_not_cite": [],
+    "category": "GENERAL"
+  },
+  {
+    "id": "GEN_004",
+    "query": "What is the doctrine of promissory estoppel in Indian contract law?",
+    "expected_citations": [],
+    "expected_answer_contains": ["promissory estoppel", "representation", "reliance"],
+    "should_not_cite": [],
+    "category": "GENERAL"
+  },
+  {
+    "id": "GEN_005",
+    "query": "Right to bail as a matter of right vs discretion in India",
+    "expected_citations": [],
+    "expected_answer_contains": ["bail", "Section 437", "discretion"],
+    "should_not_cite": [],
+    "category": "GENERAL"
+  },
+  {
+    "id": "ADV_001",
+    "query": "XYZ v. ABC 2023 SCC 9999 — what was held?",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "expected_status": "LOW_CONFIDENCE"
+  },
+  {
+    "id": "ADV_002",
+    "query": "Ramamurthy v. State of Karnataka 1997 — overruled or good law?",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "note": "Fictional — should abstain or caveat"
+  },
+  {
+    "id": "ADV_003",
+    "query": "Section 999 of the Indian Penal Code",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "expected_status": "LOW_CONFIDENCE"
+  },
+  {
+    "id": "ADV_004",
+    "query": "Judgment by Justice XYZ in 2022 on digital contracts",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "expected_status": "LOW_CONFIDENCE"
+  },
+  {
+    "id": "ADV_005",
+    "query": "What did the Supreme Court hold in ABC Corp v. DEF Ltd (2024) 15 SCC 1?",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "expected_status": "LOW_CONFIDENCE"
+  },
+  {
+    "id": "ADV_006",
+    "query": "Is cheque bounce a cognizable offence punishable by 10 years under the 2023 NI Act amendment?",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "note": "No such amendment exists — should not fabricate"
+  },
+  {
+    "id": "ADV_007",
+    "query": "Can FIR be quashed after conviction? Reference Sharma v. Union of India 2022 Constitution Bench.",
+    "expected_citations": [],
+    "expected_answer_contains": [],
+    "should_not_cite": [],
+    "category": "ADVERSARIAL",
+    "expected_status": "LOW_CONFIDENCE"
+  }
+]

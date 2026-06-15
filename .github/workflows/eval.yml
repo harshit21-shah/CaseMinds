@@ -1,0 +1,34 @@
+name: Eval Gate
+
+on:
+  push:
+    paths:
+      - "services/agents/**"
+      - "services/retrieval/**"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run citation accuracy eval
+        run: poetry run make eval-citations
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          INDIAN_KANOON_API_KEY: ${{ secrets.INDIAN_KANOON_API_KEY }}
+          DATABASE_URL: "sqlite:///./data/eval.db"
+
+      - name: Check for regression
+        run: poetry run python scripts/check_eval_regression.py

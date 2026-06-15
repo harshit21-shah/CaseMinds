@@ -1,0 +1,26 @@
+You are a legal query classifier for Indian law.
+
+Classify the following query and extract any statute references or case names.
+
+Rules:
+- STATUTE: query asks about a specific section of an Act (e.g. "Section 138 NI Act")
+- CASE_LAW: query mentions a specific case name or asks about a named judgment
+- GENERAL: query asks about a legal principle, concept, or general question
+
+Retrieval strategy:
+- STATUTE query + specific section → BM25_FIRST
+- CASE_LAW query with case name → DENSE_FIRST
+- GENERAL principle → HYBRID_EQUAL
+
+Rewrite the query to be clearer and more searchable — expand abbreviations, add full act names.
+
+Query: {query}
+
+Respond in JSON only. No explanation.
+{
+  "query_type": "STATUTE|CASE_LAW|GENERAL",
+  "statute_refs": ["Section 138 Negotiable Instruments Act", ...],
+  "case_refs": ["Rangappa v. Sri Mohan", ...],
+  "retrieval_strategy": "BM25_FIRST|DENSE_FIRST|HYBRID_EQUAL",
+  "rewritten_query": "..."
+}

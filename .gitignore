@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+.env
+.env.local
+.venv/
+venv/
+env/
+
+# Corpus data (large + possible licensing constraints)
+data/raw/
+data/processed/
+data/chroma/
+data/graph.pkl
+data/bm25.pkl
+data/*.db
+
+# Keep seed dir (small pre-built demo corpus)
+!data/seed/
+
+# Eval results (generated, not source)
+services/eval/results/
+
+# Mypy / Ruff cache
+.mypy_cache/
+.ruff_cache/
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
