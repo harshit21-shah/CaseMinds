@@ -23,6 +23,8 @@ data/chroma/
 data/graph.pkl
 data/bm25.pkl
 data/*.db
+data/*.db-wal
+data/*.db-shm
 
 # Keep seed dir (small pre-built demo corpus)
 !data/seed/
