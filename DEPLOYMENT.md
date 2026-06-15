@@ -28,18 +28,25 @@ make run                    # http://localhost:8080 serves UI + API
 
 ## Render deploy (free tier)
 
+> **Free tier cannot use persistent disks.** `render.yaml` is configured for free deploy
+> without a disk. Corpus data lives in ephemeral `./data/` — it survives sleep/wake but
+> is **wiped on every redeploy**. Re-run seed after each deploy, or use `render.starter.yaml`
+> ($7/mo Starter plan) for a 1 GB persistent disk.
+
 ### 1. Push to GitHub
 
 Ensure `frontend/package-lock.json` is committed (run `npm install` in `frontend/` once).
 
+Push the latest `render.yaml` (no disk block) before creating the Blueprint.
+
 ### 2. Create Render Web Service
 
-- Connect your GitHub repo
-- **Blueprint:** use `render.yaml` (or manual settings below)
+- Connect your GitHub repo: [harshit21-shah/CaseMinds](https://github.com/harshit21-shah/CaseMinds)
+- **New → Blueprint** → select repo (uses `render.yaml`)
 - **Build:** `cd frontend && npm ci && npm run build && cd .. && pip install poetry && poetry install --no-dev`
 - **Start:** `uvicorn services.api.main:app --host 0.0.0.0 --port $PORT`
 - **Health check:** `/api/v1/health`
-- **Disk:** 1 GB mounted at `/app/data`
+- **No disk** on free tier
 
 ### 3. Environment variables (Render dashboard)
 
@@ -47,19 +54,22 @@ Ensure `frontend/package-lock.json` is committed (run `npm install` in `frontend
 |---|---|
 | `GROQ_API_KEY` | your key |
 | `INDIAN_KANOON_API_KEY` | your key |
-| `DATABASE_URL` | `sqlite:////app/data/caseminds.db` |
-| `CHROMA_PERSIST_DIR` | `/app/data/chroma` |
-| `GRAPH_PATH` | `/app/data/graph.pkl` |
-| `BM25_PATH` | `/app/data/bm25.pkl` |
+| `DATABASE_URL` | `sqlite:///./data/caseminds.db` |
+| `CHROMA_PERSIST_DIR` | `./data/chroma` |
+| `GRAPH_PATH` | `./data/graph.pkl` |
+| `BM25_PATH` | `./data/bm25.pkl` |
 | `VERIFICATION_THRESHOLD` | `0.50` |
 | `VERIFICATION_MIN_VERIFIED` | `1` |
 | `ENVIRONMENT` | `production` |
 
-### 4. Seed corpus on Render (one-time, required)
+*(These are already set in `render.yaml` — only add the API keys in the dashboard.)*
 
-Render starts with an **empty disk**. Judgments do not appear automatically.
+### 4. Seed corpus on Render (required after each deploy on free tier)
 
-**Option A — Render Shell (recommended first deploy):**
+Render starts with an **empty filesystem**. Judgments do not appear automatically.
+On **free tier**, seed again after every redeploy (no persistent disk).
+
+**Render Shell (recommended):**
 
 ```bash
 # In Render dashboard → Shell
@@ -67,7 +77,9 @@ python scripts/seed.py --fast --incremental
 python scripts/seed_statutes.py
 ```
 
-Takes ~30–60 min on free tier. Data persists on the 1 GB disk.
+Takes ~30–60 min on free tier.
+
+**Paid tier with persistent disk:** use `render.starter.yaml` instead — seed once, data survives redeploys.
 
 **Option B — Upload from local:**
 

@@ -1,9 +1,15 @@
+# Render Blueprint — Starter plan ($7/mo) with persistent disk.
+# Use this if you want the corpus to survive redeploys without re-seeding.
+#
+# Deploy: Render dashboard → New Blueprint → point at this file instead of render.yaml
+# Or change plan: starter in services[0] below.
+
 services:
   - type: web
     name: caseminds
     runtime: python
     region: oregon
-    plan: free
+    plan: starter
     buildCommand: >-
       cd frontend && npm ci && npm run build && cd ..
       && pip install poetry && poetry install --no-dev
@@ -16,29 +22,23 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: SEED_ADMIN_SECRET
-        sync: false
-      # Free tier has no persistent disk — paths use ephemeral ./data/ (re-seed after redeploy)
       - key: DATABASE_URL
-        value: sqlite:///./data/caseminds.db
+        value: sqlite:////app/data/caseminds.db
       - key: CHROMA_PERSIST_DIR
-        value: ./data/chroma
+        value: /app/data/chroma
       - key: GRAPH_PATH
-        value: ./data/graph.pkl
+        value: /app/data/graph.pkl
       - key: BM25_PATH
-        value: ./data/bm25.pkl
+        value: /app/data/bm25.pkl
       - key: FRONTEND_DIST
         value: ./frontend/dist
-      - key: MIN_RETRIEVAL_SCORE
-        value: "0.30"
       - key: VERIFICATION_THRESHOLD
         value: "0.50"
       - key: VERIFICATION_MIN_VERIFIED
         value: "1"
       - key: ENVIRONMENT
         value: production
-      - key: LOG_LEVEL
-        value: INFO
-
-    # Persistent disk requires Starter ($7/mo) or higher — not available on free tier.
-    # See render.starter.yaml or DEPLOYMENT.md to enable disk on paid plans.
+    disk:
+      name: caseminds-data
+      mountPath: /app/data
+      sizeGB: 1
