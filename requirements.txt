@@ -1,0 +1,20 @@
+# Production dependencies for Render (pip install -r requirements.txt)
+# Keep in sync with pyproject.toml [tool.poetry.dependencies]
+
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.32,<0.33
+streamlit>=1.40,<2.0
+langchain-groq>=0.2,<0.3
+langchain-anthropic>=0.3,<0.4
+langgraph>=0.2,<0.3
+chromadb>=0.6,<0.7
+sentence-transformers>=3.3,<4.0
+rank-bm25>=0.2,<0.3
+networkx>=3.4,<4.0
+httpx>=0.28,<0.29
+pydantic>=2.10,<3.0
+pydantic-settings>=2.7,<3.0
+rapidfuzz>=3.10,<4.0
+python-dotenv>=1.0,<2.0
+sqlalchemy>=2.0,<3.0
+alembic>=1.14,<2.0

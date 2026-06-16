@@ -43,7 +43,7 @@ Push the latest `render.yaml` (no disk block) before creating the Blueprint.
 
 - Connect your GitHub repo: [harshit21-shah/CaseMinds](https://github.com/harshit21-shah/CaseMinds)
 - **New → Blueprint** → select repo (uses `render.yaml`)
-- **Build:** `cd frontend && npm ci && npm run build && cd .. && pip install poetry && poetry install --no-dev`
+- **Build:** `bash scripts/build_render.sh` (builds frontend + `pip install -r requirements.txt`)
 - **Start:** `uvicorn services.api.main:app --host 0.0.0.0 --port $PORT`
 - **Health check:** `/api/v1/health`
 - **No disk** on free tier
