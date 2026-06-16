@@ -28,7 +28,6 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from services.agents.logger import configure_logging, set_trace_id
-from services.agents.pipeline import get_pipeline_meta, run_pipeline, run_pipeline_events
 from services.api.database import SessionLocal, get_db, init_db
 from services.api.models import Feedback, JudgmentCitation, QueryLog
 from services.api.schemas import (
@@ -45,7 +44,6 @@ from services.api.schemas import (
     RelatedResponse,
 )
 from services.config import settings
-from services.graph.graph_store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -72,15 +70,23 @@ def _check_rate_limit(client_ip: str) -> None:
 
 # ── Startup / shutdown ────────────────────────────────────────────────────────
 
-_graph_store: GraphStore | None = None
+_graph_store = None  # lazy — avoids blocking port bind on Render cold start
+
+
+def _get_graph_store():
+    """Load citation graph on first use (not at startup)."""
+    global _graph_store
+    if _graph_store is None:
+        from services.graph.graph_store import GraphStore
+
+        _graph_store = GraphStore()
+    return _graph_store
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    global _graph_store
     configure_logging(settings.log_level)
     init_db()
-    _graph_store = GraphStore()
     logger.info("CaseMinds API started", extra={"environment": settings.environment})
     yield
     logger.info("CaseMinds API shutting down")
@@ -206,8 +212,8 @@ async def query_endpoint(
     db: Session = Depends(get_db),
 ) -> QueryResponse:
     """Run the 4-agent pipeline in a threadpool so the event loop stays unblocked."""
-    import asyncio
     from fastapi.concurrency import run_in_threadpool
+    from services.agents.pipeline import run_pipeline
 
     client_ip = request.client.host if request.client else "unknown"
     _check_rate_limit(client_ip)
@@ -268,6 +274,8 @@ async def query_stream_endpoint(
             return f"data: {json.dumps({'event': event, **data})}\n\n"
 
         def _produce_events() -> None:
+            from services.agents.pipeline import run_pipeline_events
+
             try:
                 for ev in run_pipeline_events(body.query.strip()):
                     loop.call_soon_threadsafe(queue.put_nowait, ev)
@@ -416,7 +424,7 @@ def health(db: Session = Depends(get_db)) -> HealthResponse:
     from services.api.models import Judgment
 
     corpus_size = db.query(Judgment).count()
-    graph_stats = _graph_store.stats() if _graph_store else {"nodes": 0, "edges": 0}
+    graph_stats = _graph_store.stats() if _graph_store is not None else {"nodes": 0, "edges": 0}
 
     return HealthResponse(
         status="ok",
@@ -451,6 +459,8 @@ def eval_latest() -> EvalLatestResponse:
 @app.get("/api/v1/pipeline/meta")
 def pipeline_meta() -> dict:
     """Agent labels for UI. Step details are streamed live per query."""
+    from services.agents.pipeline import get_pipeline_meta
+
     return {"agents": get_pipeline_meta()}
 
 @app.get("/api/v1/admin/corpus-status")
@@ -459,7 +469,7 @@ def corpus_status(db: Session = Depends(get_db)) -> dict:
     from services.api.models import Judgment
 
     size = db.query(Judgment).count()
-    graph_stats = _graph_store.stats() if _graph_store else {"nodes": 0, "edges": 0}
+    graph_stats = _get_graph_store().stats()
     return {
         "corpus_size": size,
         "graph_nodes": graph_stats["nodes"],

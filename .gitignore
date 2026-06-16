@@ -25,6 +25,7 @@ data/bm25.pkl
 data/*.db
 data/*.db-wal
 data/*.db-shm
+data/hf_cache/
 
 # Keep seed dir (small pre-built demo corpus)
 !data/seed/
