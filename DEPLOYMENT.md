@@ -64,39 +64,47 @@ Push the latest `render.yaml` (no disk block) before creating the Blueprint.
 
 *(These are already set in `render.yaml` — only add the API keys in the dashboard.)*
 
-### 4. Seed corpus on Render (required after each deploy on free tier)
+### 4. Seed corpus (required — no Render Shell on free tier)
 
-Render starts with an **empty filesystem**. Judgments do not appear automatically.
-On **free tier**, seed again after every redeploy (no persistent disk).
+Render **Shell requires a paid plan**. Use the **HTTP admin seed API** instead.
 
-**Render Shell (recommended):**
+**Step A — set a secret in Render → Environment:**
+
+```
+SEED_ADMIN_SECRET=pick_a_long_random_string_here
+```
+
+Redeploy after saving.
+
+**Step B — trigger demo seed from your laptop (~15–20 min):**
 
 ```bash
-# In Render dashboard → Shell
-python scripts/seed.py --fast --incremental
+curl -X POST "https://caseminds.onrender.com/api/v1/admin/seed?demo=true" \
+  -H "X-Admin-Secret: pick_a_long_random_string_here"
+```
+
+**Step C — poll until complete:**
+
+```bash
+curl https://caseminds.onrender.com/api/v1/admin/seed-status
+```
+
+Wait until `"phase": "complete"`. Then check health:
+
+```bash
+curl https://caseminds.onrender.com/api/v1/health
+```
+
+**Full corpus (~60 min):** use `?demo=false` instead of `?demo=true`.
+
+**Alternative — seed locally** (if you have corpus built already):
+
+```bash
+python scripts/seed.py --fast --incremental --demo
 python scripts/seed_statutes.py
 ```
 
-Takes ~30–60 min on free tier.
-
-**Paid tier with persistent disk:** use `render.starter.yaml` instead — seed once, data survives redeploys.
-
-**Option B — Upload from local:**
-
-```bash
-# Local machine (after make seed locally)
-# Copy data/caseminds.db, data/chroma/, data/graph.pkl, data/bm25.pkl
-# to Render disk via Shell or rsync/scp if available
-```
-
-**Option C — Incremental updates later:**
-
-```bash
-python scripts/seed.py --fast --incremental   # skips existing doc_ids
-python scripts/seed_statutes.py
-```
-
-There is **no cron job** on Render free tier — schedule manual re-seeds or upgrade to a paid cron worker.
+Free tier has no persistent disk — data is **wiped on redeploy**. Re-run the curl seed after each deploy, or upgrade to Starter (`render.starter.yaml`).
 
 ### 5. Verify deploy
 

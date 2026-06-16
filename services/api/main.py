@@ -291,8 +291,8 @@ async def query_stream_endpoint(
                 {
                     "detail": (
                         "Corpus not seeded yet (0 judgments). "
-                        "In Render Shell run: python scripts/seed.py --fast --incremental "
-                        "&& python scripts/seed_statutes.py (~30–60 min)."
+                        "POST /api/v1/admin/seed?demo=true with header X-Admin-Secret "
+                        "(see DEPLOYMENT.md — no Render Shell needed)."
                     ),
                     "trace_id": trace_id,
                 },
@@ -489,6 +489,55 @@ def pipeline_meta() -> dict:
 
     return {"agents": get_pipeline_meta()}
 
+
+def _verify_admin_secret(x_admin_secret: str | None = Header(None, alias="X-Admin-Secret")) -> None:
+    if not settings.seed_admin_secret.strip():
+        raise HTTPException(
+            status_code=503,
+            detail="SEED_ADMIN_SECRET not configured. Set it in Render Environment variables.",
+        )
+    if x_admin_secret != settings.seed_admin_secret:
+        raise HTTPException(status_code=403, detail="Invalid X-Admin-Secret header.")
+
+
+@app.post("/api/v1/admin/seed")
+def trigger_seed(
+    demo: bool = True,
+    fast: bool = True,
+    incremental: bool = True,
+    _: None = Depends(_verify_admin_secret),
+) -> dict:
+    """
+    Start corpus seed in background — no Render Shell required (free tier).
+
+    From your laptop:
+      curl -X POST "https://caseminds.onrender.com/api/v1/admin/seed?demo=true" \\
+        -H "X-Admin-Secret: YOUR_SECRET"
+
+    Poll GET /api/v1/admin/seed-status until phase=complete (~15 min demo, ~60 min full).
+    """
+    from services.api.seed_job import get_seed_status, start_seed_job
+
+    if not start_seed_job(fast=fast, incremental=incremental, demo=demo):
+        status = get_seed_status()
+        raise HTTPException(status_code=409, detail={"message": "Seed already running", **status})
+
+    return {
+        "status": "started",
+        "demo": demo,
+        "fast": fast,
+        "incremental": incremental,
+        "poll": "/api/v1/admin/seed-status",
+    }
+
+
+@app.get("/api/v1/admin/seed-status")
+def seed_status() -> dict:
+    from services.api.seed_job import get_seed_status
+
+    return get_seed_status()
+
+
 @app.get("/api/v1/admin/corpus-status")
 def corpus_status(db: Session = Depends(get_db)) -> dict:
     """Corpus health + instructions for manual refresh (judgments are NOT auto-updated)."""
@@ -503,9 +552,9 @@ def corpus_status(db: Session = Depends(get_db)) -> dict:
         "ready": size >= 50,
         "auto_updates": False,
         "refresh_instructions": (
-            "Judgments are NOT added automatically. To expand the corpus, run locally: "
-            "python scripts/seed.py --fast --incremental && python scripts/seed_statutes.py, "
-            "then copy data/ to the Render disk, OR run the same commands in Render Shell."
+            "Corpus is not auto-updated. Seed via HTTP (no Render Shell): "
+            "POST /api/v1/admin/seed?demo=true with X-Admin-Secret header. "
+            "Or run locally: python scripts/seed.py --fast --demo --incremental"
         ),
     }
 

@@ -33,7 +33,7 @@ export function Sidebar({ health, history, onSelectQuery, onSelectExample }: Sid
             </div>
             {health.corpus_size < 1 && (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200/90">
-                Corpus empty — seed in Render Shell before queries will work.
+                Corpus empty — seed via admin API (see DEPLOYMENT.md). No Render Shell needed.
               </div>
             )}
             <div className="grid grid-cols-1 gap-2 text-sm">
