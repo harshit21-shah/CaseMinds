@@ -85,6 +85,19 @@ export default function App() {
           const ev = event.event as string;
           const agent = event.agent as AgentStep["id"] | undefined;
 
+          if (ev === "pipeline_start") {
+            setSteps((prev) =>
+              upsertStep(setActiveAgent(prev, "QueryClassifier"), {
+                id: "QueryClassifier",
+                status: "active",
+                detail:
+                  (event.corpus_size as number) === 0
+                    ? "Corpus empty — seed required"
+                    : ((event.detail as string) || "Loading models (first query ~1–2 min)…"),
+              }),
+            );
+          }
+
           if (ev === "agent_start" && agent) {
             setSteps((prev) =>
               upsertStep(setActiveAgent(prev, agent), {

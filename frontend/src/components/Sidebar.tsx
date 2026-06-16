@@ -31,6 +31,11 @@ export function Sidebar({ health, history, onSelectQuery, onSelectExample }: Sid
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-soft" />
               <span className="text-sm font-medium text-emerald-400">Online</span>
             </div>
+            {health.corpus_size < 1 && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200/90">
+                Corpus empty — seed in Render Shell before queries will work.
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-2 text-sm">
               <Stat icon={BookOpen} label="Judgments" value={health.corpus_size} />
               <Stat icon={GitBranch} label="Graph nodes" value={health.graph_nodes} />

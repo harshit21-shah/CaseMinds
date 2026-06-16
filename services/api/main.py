@@ -273,6 +273,32 @@ async def query_stream_endpoint(
         def _sse(event: str, data: dict) -> str:
             return f"data: {json.dumps({'event': event, **data})}\n\n"
 
+        from services.api.models import Judgment
+
+        corpus_size = db.query(Judgment).count()
+        yield _sse(
+            "pipeline_start",
+            {
+                "detail": "Starting pipeline…",
+                "corpus_size": corpus_size,
+                "trace_id": trace_id,
+            },
+        )
+
+        if corpus_size < 1:
+            yield _sse(
+                "error",
+                {
+                    "detail": (
+                        "Corpus not seeded yet (0 judgments). "
+                        "In Render Shell run: python scripts/seed.py --fast --incremental "
+                        "&& python scripts/seed_statutes.py (~30–60 min)."
+                    ),
+                    "trace_id": trace_id,
+                },
+            )
+            return
+
         def _produce_events() -> None:
             from services.agents.pipeline import run_pipeline_events
 
